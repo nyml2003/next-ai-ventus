@@ -210,15 +210,15 @@ var ModuleRegistry = map[string]ModuleHandler{
 
 ## 页面与 BFF 模块映射
 
-| 页面 | 首屏 BFF 模块 | 说明 |
-|------|--------------|------|
-| **首页** `/` | `header`, `hero`, `postList`, `sidebar`, `footer` | 所有首屏模块均走 BFF |
-| **文章页** `/post/:slug` | `header`, `article`, `toc`, `related` | article 包含完整内容，toc 从 article 生成 |
-| **管理首页** `/admin` | `adminSidebar`, `adminStats`, `recentPosts` | QuickActions 为静态组件 |
-| **文章管理** `/admin/posts` | `adminSidebar`, `adminFilter`, `adminPostList` | FilterBar、PostTable 数据走 BFF |
-| **文章编辑** `/admin/editor` | `editor`, `editorSettings` | Editor、Settings 面板数据走 BFF |
-| **图片管理** `/admin/images` | `adminSidebar`, `imageFilter`, `imageList` | P1 功能 |
-| **登录页** `/login` | 无 | LoginForm 为纯前端表单 |
+| 页面 | MVP 首屏 BFF 模块 | P1 扩展模块 | 说明 |
+|------|------------------|-------------|------|
+| **首页** `/` | `header`, `postList`, `footer` | `hero`, `sidebar` | MVP 极简布局 |
+| **文章页** `/post/:slug` | `header`, `article`, `footer` | `toc`, `related` | article 包含完整内容 |
+| **管理首页** `/admin` | - | `adminSidebar`, `adminStats`, `recentPosts` | **MVP 不做**，直接进 `/admin/posts` |
+| **文章管理** `/admin/posts` | `adminSidebar`, `adminFilter`, `adminPostList` | - | 含文章统计 |
+| **文章编辑** `/admin/editor` | `editor`, `editorSettings` | - | Editor、Settings 面板 |
+| **图片管理** `/admin/images` | - | `adminSidebar`, `imageFilter`, `imageList` | P1 功能 |
+| **登录页** `/login` | - | - | 纯前端表单，无 BFF |
 
 > **原则**：首屏可见的信息展示模块必须通过 BFF 获取数据，确保首屏渲染性能。
 
