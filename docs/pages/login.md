@@ -14,6 +14,8 @@
 
 ## 模块清单
 
+> **说明**：登录页为纯前端页面，所有模块均为客户端表单组件，不走 BFF 获取数据。
+
 ### 1. LoginForm（登录表单）
 
 **功能：**
@@ -53,7 +55,7 @@
 
 ### 2. 登录逻辑
 
-**API：**
+**API：**（独立接口，非 BFF 模块）
 ```http
 POST /api/login
 
@@ -74,7 +76,7 @@ POST /api/login
 ```
 
 **Token 存储：**
-- 登录成功后，token 写入 Cookie（HttpOnly）
+- 登录成功后，token 写入 Cookie（HttpOnly, Secure, SameSite=Strict）
 - 后续请求自动携带 Cookie 鉴权
 
 ### 3. 登录状态检查

@@ -92,6 +92,51 @@ export const lightTheme = {
 
 **方案：Zustand**
 
+### BFF 数据获取（首屏模块必须）
+
+**封装 Hook：usePageData**
+
+```typescript
+// 获取页面 BFF 数据
+function usePageData(
+  page: string,                    // 页面标识：home, post, admin, adminPosts...
+  modules: string[],              // 所需模块列表
+  params?: Record<string, any>    // 页面参数：{ page: 1, tag: 'go' }
+) {
+  const { data, error, isLoading } = useSWR(
+    ['/api/page', page, modules, params],
+    () => fetchPageData(page, modules, params),
+    { revalidateOnFocus: false }
+  );
+  
+  return {
+    modules: data?.modules || {},   // 各模块数据
+    meta: data?.meta || {},         // 页面元数据
+    isLoading,
+    error
+  };
+}
+
+// 使用示例
+function HomePage() {
+  const { modules, isLoading } = usePageData('home', [
+    'header', 'hero', 'postList', 'sidebar', 'footer'
+  ], { page: 1 });
+  
+  if (isLoading) return <PageSkeleton />;
+  
+  return (
+    <Layout>
+      <Header data={modules.header.data} />
+      <Hero data={modules.hero.data} />
+      <PostList data={modules.postList.data} />
+      <Sidebar data={modules.sidebar.data} />
+      <Footer data={modules.footer.data} />
+    </Layout>
+  );
+}
+```
+
 ### 服务端状态（BFF 数据）
 
 ```typescript
@@ -107,13 +152,20 @@ const usePageStore = create(() => ({
 const useUIStore = create(() => ({
   theme: 'light',   // 主题
   sidebarOpen: false,
+  // 非首屏交互状态
+  selectedIds: [],  // 表格选中项
+  previewOpen: false,
 }))
 ```
 
 ### 分工
 
-- **服务端状态**：BFF 返回，只读，存入 PageStore
-- **客户端状态**：Zustand 管理，可读可写
+| 状态类型 | 管理方式 | 来源 | 说明 |
+|---------|---------|------|------|
+| **首屏数据** | BFF Hook | 后端 | 必须通过 `/api/page` 获取 |
+| **服务端状态** | PageStore | BFF 返回 | 只读，模块自取 |
+| **客户端状态** | UIStore | 前端 | 可读可写，UI 交互 |
+| **表单状态** | 组件内 State | 前端 | 表单输入等临时状态 |
 
 ---
 
@@ -159,9 +211,15 @@ export default {
   build: {
     rollupOptions: {
       input: {
+        // C 端页面
         home: './pages/home/index.html',
         post: './pages/post/index.html',
+        // B 端页面
+        login: './pages/login/index.html',
         admin: './pages/admin/index.html',
+        adminPosts: './pages/admin-posts/index.html',
+        adminEditor: './pages/admin-editor/index.html',
+        adminImages: './pages/admin-images/index.html',
       },
       output: {
         manualChunks: {
@@ -171,6 +229,31 @@ export default {
       }
     }
   }
+}
+```
+
+### 页面初始化流程
+
+每个页面入口统一处理 BFF 数据获取：
+
+```typescript
+// pages/home/entry.tsx
+import { usePageData } from '@utils/bff';
+
+function HomeEntry() {
+  // 首屏模块列表与产品文档保持一致
+  const { modules, isLoading, error } = usePageData('home', [
+    'header',     // 顶部导航
+    'hero',       // 首屏横幅
+    'postList',   // 文章列表（首屏核心）
+    'sidebar',    // 侧边栏
+    'footer'      // 页脚
+  ]);
+
+  if (isLoading) return <HomeSkeleton />;
+  if (error) return <ErrorPage error={error} />;
+
+  return <HomePage modules={modules} />;
 }
 ```
 

@@ -122,11 +122,29 @@ POST /api/admin/upload       # 图片上传（文件上传）
 
 ### 管理 API（需 JWT 认证）
 
+**认证接口**
 ```
-POST   /api/admin/posts
-PUT    /api/admin/posts/:id
-DELETE /api/admin/posts/:id
+POST /api/login              # 登录，返回 JWT token
+POST /api/logout             # 登出，清除 Cookie
 ```
+
+**文章管理**
+```
+POST   /api/admin/posts      # 创建文章
+PUT    /api/admin/posts/:id  # 更新文章（需携带 version 乐观锁）
+DELETE /api/admin/posts/:id  # 删除文章
+```
+
+**图片管理**
+```
+GET    /api/admin/images     # 图片列表（支持筛选、分页）
+DELETE /api/admin/images/:id # 删除单张图片
+POST   /api/admin/images/batch-delete  # 批量删除图片
+```
+
+**乐观锁说明**
+- 编辑文章时，请求 body 需包含 `version` 字段
+- 冲突时返回 409001，响应包含当前最新版本号
 
 ### BFF 请求示例
 
@@ -188,25 +206,48 @@ type ModuleHandler func(ctx *ModuleContext) (interface{}, error)
 
 ```go
 var ModuleRegistry = map[string]ModuleHandler{
-    // C端模块
-    "header":     modules.HandleHeader,
-    "hero":       modules.HandleHero,
-    "postList":   modules.HandlePostList,
-    "article":    modules.HandleArticle,      // 返回完整文章：标题+元信息+正文
-    "toc":        modules.HandleTOC,
-    "related":    modules.HandleRelated,
-    "sidebar":    modules.HandleSidebar,
-    "footer":     modules.HandleFooter,
+    // ═══════════════════════════════════════════════════════════
+    // C 端页面模块（首屏必须走 BFF）
+    // ═══════════════════════════════════════════════════════════
     
-    // B端模块
-    "adminStats":     modules.HandleAdminStats,     // 仪表盘统计数据
-    "adminPostList":  modules.HandleAdminPostList,  // 管理端文章列表
-    "recentPosts":    modules.HandleRecentPosts,    // 最近编辑的文章（admin首页用）
-    "editor":         modules.HandleEditor,         // 编辑器：获取/保存文章内容
+    // 首页模块
+    "header":     modules.HandleHeader,      // 站点 Logo、导航链接
+    "hero":       modules.HandleHero,        // 站点标题、简介（可关闭）
+    "postList":   modules.HandlePostList,    // 文章列表（支持分页、标签筛选）
+    "sidebar":    modules.HandleSidebar,     // 博主简介、热门文章、标签云
+    "footer":     modules.HandleFooter,      // 版权信息、备案号
+    
+    // 文章详情页模块
+    "article":    modules.HandleArticle,     // 完整文章：标题+元信息+正文（首屏）
+    "toc":        modules.HandleTOC,         // 目录导航（从 article 内容生成）
+    "related":    modules.HandleRelated,     // 相关文章推荐（基于标签匹配）
+    
+    // ═══════════════════════════════════════════════════════════
+    // B 端页面模块（管理后台，首屏必须走 BFF）
+    // ═══════════════════════════════════════════════════════════
+    
+    // 管理首页模块
+    "adminSidebar":   modules.HandleAdminSidebar,   // 博主头像、名称、导航菜单
+    "adminStats":     modules.HandleAdminStats,     // 文章数、阅读量、标签数等统计
+    "recentPosts":    modules.HandleRecentPosts,    // 最近编辑的 5 篇文章
+    
+    // 文章管理页模块
+    "adminPostList":  modules.HandleAdminPostList,  // 管理端文章列表（支持筛选、搜索）
+    "adminFilter":    modules.HandleAdminFilter,    // 筛选数据：状态选项、标签列表
+    
+    // 文章编辑页模块
+    "editor":         modules.HandleEditor,         // 获取/保存文章内容
+    "editorSettings": modules.HandleEditorSettings, // 编辑器设置数据：所有标签列表
+    
+    // 图片管理页模块
+    "imageList":      modules.HandleImageList,      // 图片列表（支持时间筛选、搜索）
+    "imageFilter":    modules.HandleImageFilter,    // 图片筛选选项：时间范围
 }
 
-// 独立接口处理器（非 BFF 模块）
-// POST /api/posts/:id/view -> HandlePostView()  // 阅读量统计埋点
+// ═══════════════════════════════════════════════════════════
+// 独立接口处理器（非 BFF 模块，纯行为接口）
+// ═══════════════════════════════════════════════════════════
+// POST /api/posts/:id/view -> HandlePostView()  // 阅读量统计埋点（无需返回页面数据）
 ```
 
 ### 执行流程
