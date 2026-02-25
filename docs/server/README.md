@@ -22,12 +22,17 @@
 ```
 content/                          # 项目根目录下
 ├── posts/
-│   └── 2024-06-hello-world/
+│   └── 2024-06-hello-world/      # 文章目录：{YYYY-MM}-{slug}
 │       ├── meta.json             # 元数据
 │       └── content.md            # Markdown 正文
 └── authors/
     └── nyml.json                 # 作者信息
 ```
+
+**目录命名规则**：
+- 格式：`{YYYY-MM}-{slug}`，如 `2024-06-hello-world`
+- `slug`：URL 短链接，全局唯一，只能包含字母、数字、连字符
+- slug 冲突时拒绝创建/更新，提示用户修改
 
 ### meta.json 格式
 
@@ -38,9 +43,21 @@ content/                          # 项目根目录下
   "slug": "hello-world",
   "date": "2024-06-15",
   "tags": ["go", "架构"],
-  "status": "published"
+  "status": "published",
+  "version": 1,
+  "cover": "/uploads/2024/06/abc123.jpg"
 }
 ```
+
+**字段说明：**
+- `id`: 文章唯一标识（目录名）
+- `title`: 文章标题
+- `slug`: URL 友好的短链接（如 `hello-world`）
+- `date`: 发布日期（ISO 8601 格式）
+- `tags`: 标签数组
+- `status`: 文章状态（`draft` 草稿 / `published` 已发布）
+- `version`: 乐观锁版本号（编辑时递增，防并发覆盖）
+- `cover`: 封面图路径（可选）
 
 ### 内存索引
 
@@ -50,6 +67,24 @@ type Index struct {
     SlugMap map[string]string // slug -> id
     TagMap  map[string][]string // tag -> ids
     mu      sync.RWMutex
+}
+
+// 内存中的文章结构（包含运行时数据）
+type Post struct {
+    Meta    PostMeta  // meta.json 内容
+    Content string    // content.md 内容
+    Views   int       // 阅读量（运行时从埋点统计）
+}
+
+type PostMeta struct {
+    ID      string   `json:"id"`
+    Title   string   `json:"title"`
+    Slug    string   `json:"slug"`
+    Date    string   `json:"date"`
+    Tags    []string `json:"tags"`
+    Status  string   `json:"status"`
+    Version int      `json:"version"`
+    Cover   string   `json:"cover,omitempty"`
 }
 ```
 
@@ -157,18 +192,21 @@ var ModuleRegistry = map[string]ModuleHandler{
     "header":     modules.HandleHeader,
     "hero":       modules.HandleHero,
     "postList":   modules.HandlePostList,
-    "article":    modules.HandleArticle,
+    "article":    modules.HandleArticle,      // 返回完整文章：标题+元信息+正文
     "toc":        modules.HandleTOC,
     "related":    modules.HandleRelated,
     "sidebar":    modules.HandleSidebar,
     "footer":     modules.HandleFooter,
     
     // B端模块
-    "adminStats":     modules.HandleAdminStats,
-    "adminPostList":  modules.HandleAdminPostList,
-    "editor":         modules.HandleEditor,
-    "editorToolbar":  modules.HandleEditorToolbar,
+    "adminStats":     modules.HandleAdminStats,     // 仪表盘统计数据
+    "adminPostList":  modules.HandleAdminPostList,  // 管理端文章列表
+    "recentPosts":    modules.HandleRecentPosts,    // 最近编辑的文章（admin首页用）
+    "editor":         modules.HandleEditor,         // 编辑器：获取/保存文章内容
 }
+
+// 独立接口处理器（非 BFF 模块）
+// POST /api/posts/:id/view -> HandlePostView()  // 阅读量统计埋点
 ```
 
 ### 执行流程

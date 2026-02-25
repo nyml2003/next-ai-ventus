@@ -24,15 +24,17 @@
 | 页面 | 文档 | 核心模块 |
 |------|------|---------|
 | 首页 | [home.md](./home.md) | Header, Hero, PostList, Sidebar, Footer |
-| 文章详情 | [post.md](./post.md) | Header, ArticleMeta, Article, TOC, Related, Footer |
+| 文章详情 | [post.md](./post.md) | Header, Article(含ArticleMeta+正文), TOC, Related, Footer |
+| 登录页 | [login.md](./login.md) | LoginForm |
 
 ### B 端页面
 
 | 页面 | 文档 | 核心模块 |
 |------|------|---------|
-| 管理首页 | [admin-home.md](./admin-home.md) | Sidebar, Stats, QuickActions, RecentPosts |
+| 管理首页 | [admin-home.md](./admin-home.md) | Sidebar, Stats(adminStats), QuickActions, RecentPosts |
 | 文章管理 | [admin-posts.md](./admin-posts.md) | Sidebar, FilterBar, PostTable, Pagination |
 | 文章编辑 | [admin-editor.md](./admin-editor.md) | Toolbar, Editor, Preview, Settings |
+| 图片管理 | [admin-images.md](./admin-images.md) | Sidebar, FilterBar, ImageGrid, Pagination |
 
 ---
 

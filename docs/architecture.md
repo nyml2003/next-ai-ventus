@@ -56,8 +56,8 @@
 next-ai-ventus/
 ├── content/                    # 文章内容（Git 管理）
 │   ├── posts/                  # 文章目录
-│   │   └── 2024-06-hello/      # 每篇文章一个目录
-│   │       ├── meta.json       # 元数据
+│   │   └── 2024-06-hello/      # 每篇文章一个目录（目录名 = 文章ID）
+│   │       ├── meta.json       # 元数据（标题、slug、标签、状态、版本等）
 │   │       └── content.md      # Markdown 正文
 │   └── authors/                # 作者信息
 │
@@ -213,3 +213,10 @@ var ModuleRegistry = map[string]ModuleHandler{
 - [前端详细设计](./frontend/README.md) - 工程化、主题、状态管理
 - [后端详细设计](./server/README.md) - 存储、API、模块机制
 - [页面详细设计](./pages/README.md) - 各页面模块组成和交互
+  - [登录页](./pages/login.md) - P0：JWT 登录
+  - [首页](./pages/home.md) - P0：文章列表
+  - [文章详情](./pages/post.md) - P0：文章阅读
+  - [管理首页](./pages/admin-home.md) - P0：仪表盘
+  - [文章管理](./pages/admin-posts.md) - P0：文章列表管理
+  - [文章编辑](./pages/admin-editor.md) - P0：Markdown 编辑器
+  - [图片管理](./pages/admin-images.md) - P1：图片上传管理
