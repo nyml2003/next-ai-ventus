@@ -66,7 +66,7 @@ func HandlePostList(ctx *ModuleContext) (interface{}, error) {
 			Excerpt: post.Excerpt,
 			Tags:    post.GetTagNames(),
 			Date:    post.CreatedAt.Format("2006-01-02"),
-			Href:    fmt.Sprintf("/post/%s", post.Slug.String()),
+			Href:    fmt.Sprintf("/pages/post/index.html?slug=%s", post.Slug.String()),
 		})
 	}
 

@@ -26,19 +26,19 @@ func HandleAdminSidebar(ctx *ModuleContext) (interface{}, error) {
 		{
 			Name:   "仪表盘",
 			Icon:   "dashboard",
-			Href:   "/admin",
+			Href:   "/pages/admin/index.html",
 			Active: currentPage == "admin",
 		},
 		{
 			Name:   "文章管理",
 			Icon:   "file-text",
-			Href:   "/admin/posts",
+			Href:   "/pages/admin-posts/index.html",
 			Active: currentPage == "adminPosts",
 		},
 		{
 			Name:   "图片管理",
 			Icon:   "image",
-			Href:   "/admin/images",
+			Href:   "/pages/admin-images/index.html",
 			Active: currentPage == "adminImages",
 		},
 	}

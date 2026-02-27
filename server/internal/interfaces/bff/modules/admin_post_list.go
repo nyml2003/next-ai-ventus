@@ -15,6 +15,7 @@ type AdminPostListData struct {
 	} `json:"stats"`
 	Items []AdminPostItem `json:"items"`
 	Pagination AdminPaginationInfo `json:"pagination"`
+	NewPostHref string `json:"newPostHref"`
 }
 
 // AdminPostItem 管理端文章列表项
@@ -84,7 +85,7 @@ func HandleAdminPostList(ctx *ModuleContext) (interface{}, error) {
 			Tags:      post.GetTagNames(),
 			CreatedAt: post.CreatedAt.Format("2006-01-02 15:04"),
 			UpdatedAt: post.UpdatedAt.Format("2006-01-02 15:04"),
-			Href:      fmt.Sprintf("/admin/editor?id=%s", post.ID),
+			Href:      fmt.Sprintf("/pages/admin-editor/index.html?id=%s", post.ID),
 		})
 	}
 
@@ -105,5 +106,6 @@ func HandleAdminPostList(ctx *ModuleContext) (interface{}, error) {
 			Total:      result.Total,
 			TotalPages: result.TotalPages,
 		},
+		NewPostHref: "/pages/admin-editor/index.html",
 	}, nil
 }

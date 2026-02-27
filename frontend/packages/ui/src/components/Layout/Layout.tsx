@@ -4,9 +4,10 @@ import './style.css';
 export interface HeaderProps {
   siteName: string;
   navLinks: Array<{ name: string; href: string }>;
+  loginHref?: string;
 }
 
-export const Header: React.FC<HeaderProps> = ({ siteName, navLinks }) => {
+export const Header: React.FC<HeaderProps> = ({ siteName, navLinks, loginHref }) => {
   return (
     <header className="header">
       <div className="header__container">
@@ -19,6 +20,11 @@ export const Header: React.FC<HeaderProps> = ({ siteName, navLinks }) => {
               {link.name}
             </a>
           ))}
+          {loginHref && (
+            <a href={loginHref} className="header__link header__link--login">
+              登录
+            </a>
+          )}
         </nav>
       </div>
     </header>

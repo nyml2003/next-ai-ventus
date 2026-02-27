@@ -4,12 +4,21 @@ import { resolve } from 'path';
 
 export default defineConfig({
   plugins: [react()],
+  root: '../',
   resolve: {
     alias: {
-      '@': resolve(__dirname, '../'),
+      '@ventus/types': resolve(__dirname, '../packages/types/src'),
+      '@ventus/utils': resolve(__dirname, '../packages/utils/src'),
+      '@ventus/ui': resolve(__dirname, '../packages/ui/src'),
+      '@ventus/markdown': resolve(__dirname, '../packages/markdown/src'),
     },
+    dedupe: ['react', 'react-dom'],
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime'],
   },
   build: {
+    outDir: './dist',
     rollupOptions: {
       input: {
         home: resolve(__dirname, '../pages/home/index.html'),
@@ -18,6 +27,17 @@ export default defineConfig({
         adminPosts: resolve(__dirname, '../pages/admin-posts/index.html'),
         adminEditor: resolve(__dirname, '../pages/admin-editor/index.html'),
       },
+    },
+  },
+  server: {
+    port: 3000,
+    proxy: {
+      '/api': 'http://localhost:8080',
+      '/uploads': 'http://localhost:8080',
+    },
+    // 重写规则：/pages/post/{slug} -> /pages/post/index.html
+    fs: {
+      strict: false,
     },
   },
 });
