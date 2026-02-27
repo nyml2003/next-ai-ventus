@@ -1,0 +1,4 @@
+packages:
+  - 'packages/*'
+  - 'pages/*'
+  - 'shell'
