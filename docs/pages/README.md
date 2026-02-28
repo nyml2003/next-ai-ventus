@@ -78,3 +78,58 @@
 | Stats | 管理首页 | `adminStats` | 统计数据 |
 
 **说明**：括号内标注的是对应的 BFF 模块名，首屏模块必须走 BFF 获取数据。
+
+---
+
+## 编排系统集成
+
+页面通过 [编排系统](../orchestration.md) 声明式组装模块：
+
+```typescript
+// pages/home/orchestration.ts
+export const homeConfig: PageOrchestrationConfig = {
+  id: 'home',
+  modules: ['header', 'postList', 'footer'],  // 声明所需 BFF 模块
+  regions: [
+    {
+      id: 'header',
+      type: 'header',
+      block: {
+        type: 'block',
+        flexDirection: 'row',
+        children: [
+          { type: 'module', name: 'Logo' },
+          { type: 'module', name: 'Nav' }
+        ]
+      }
+    },
+    {
+      id: 'content',
+      type: 'content',
+      block: {
+        type: 'block',
+        flexDirection: 'column',
+        children: [
+          { type: 'module', name: 'PostList' }
+        ]
+      }
+    },
+    {
+      id: 'footer',
+      type: 'footer',
+      block: {
+        type: 'block',
+        children: [
+          { type: 'module', name: 'Footer' }
+        ]
+      }
+    }
+  ]
+};
+```
+
+编排系统自动：
+1. 请求声明的 BFF 模块数据
+2. 将数据存入 PageStore
+3. 根据配置渲染布局结构
+4. 模块通过 `useModuleData` 从 Store 读取数据

@@ -9,6 +9,40 @@
 - [浏览器兼容性](#浏览器兼容性)
 - [构建配置](#构建配置)
 
+## 依赖的 SDK
+
+| SDK | 来源 | 说明 |
+|-----|------|------|
+| `@ventus/api-client` | [OpenAPI 生成](../api-design.md) | 类型安全的 API 客户端 |
+| `@ventus/store` | 内部 | 状态管理（基于 Zustand） |
+| `@ventus/orchestration` | 内部 | 页面编排系统 |
+
+### @ventus/api-client 使用
+
+由 OpenAPI 契约自动生成，提供类型安全的 API 调用：
+
+```typescript
+// 直接使用生成的 API 方法
+import { getPageData, getPostById } from '@ventus/api-client';
+
+// 完全类型安全
+const response = await getPageData({
+  page: 'home',
+  modules: ['header', 'postList'],
+  params: { page: 1 }
+});
+
+// React Query Hooks（封装）
+import { usePageData, usePost } from '@ventus/api-client';
+
+function PostList() {
+  const { data, isLoading } = usePageData('home', ['postList']);
+  // data.modules.postList 有完整类型
+}
+```
+
+详见 [api-design.md](../api-design.md)
+
 ---
 
 ## 工程化配置
@@ -90,51 +124,63 @@ export const lightTheme = {
 
 ## 状态管理
 
-**方案：Zustand**
+**方案：Zustand + 编排系统集成**
 
-### BFF 数据获取（首屏模块必须）
+### BFF 数据获取
 
-**封装 Hook：usePageData**
+编排系统在页面初始化时自动请求首屏数据，存入 PageStore。模块通过 Hook 读取：
 
 ```typescript
-// 获取页面 BFF 数据
-function usePageData(
-  page: string,                    // 页面标识：home, post, admin, adminPosts...
-  modules: string[],              // 所需模块列表
-  params?: Record<string, any>    // 页面参数：{ page: 1, tag: 'go' }
-) {
-  const { data, error, isLoading } = useSWR(
-    ['/api/page', page, modules, params],
-    () => fetchPageData(page, modules, params),
-    { revalidateOnFocus: false }
-  );
-  
-  return {
-    modules: data?.modules || {},   // 各模块数据
-    meta: data?.meta || {},         // 页面元数据
-    isLoading,
-    error
-  };
-}
+// 模块内读取 BFF 数据
+import { useModuleData, usePageProps } from '@ventus/store';
 
-// 使用示例
-function HomePage() {
-  const { modules, isLoading } = usePageData('home', [
-    'header', 'hero', 'postList', 'sidebar', 'footer'
-  ], { page: 1 });
+function PostList() {
+  // 从 PageStore 读取对应 BFF 模块的数据
+  const { data, loading, error } = useModuleData('postList');
+  const pageProps = usePageProps();
   
-  if (isLoading) return <PageSkeleton />;
+  // 获取 URL 参数
+  const currentTag = pageProps.getQuery('tag');
+  
+  if (loading) return <Skeleton />;
+  if (error) return <ErrorFallback />;
   
   return (
-    <Layout>
-      <Header data={modules.header.data} />
-      <Hero data={modules.hero.data} />
-      <PostList data={modules.postList.data} />
-      <Sidebar data={modules.sidebar.data} />
-      <Footer data={modules.footer.data} />
-    </Layout>
+    <div>
+      {data.items.map(post => (
+        <PostCard key={post.id} post={post} />
+      ))}
+    </div>
   );
 }
+```
+
+### 编排系统配置
+
+每个页面通过编排配置声明布局结构：
+
+```typescript
+// pages/home/orchestration.ts
+export const homeConfig: PageOrchestrationConfig = {
+  id: 'home',
+  modules: ['header', 'postList', 'footer'],  // 声明所需 BFF 模块
+  regions: [
+    {
+      id: 'header',
+      type: 'header',
+      block: {
+        type: 'block',
+        flexDirection: 'row',
+        children: [
+          { type: 'module', name: 'Logo' },
+          { type: 'module', name: 'Nav' }
+        ]
+      }
+    },
+    // ...
+  ]
+};
+```
 ```
 
 ### 服务端状态（BFF 数据）
@@ -234,27 +280,28 @@ export default {
 
 ### 页面初始化流程
 
-每个页面入口统一处理 BFF 数据获取：
+每个页面入口通过编排系统初始化：
 
 ```typescript
-// pages/home/entry.tsx
-import { usePageData } from '@utils/bff';
+// pages/home/main.tsx
+import { createOrchestration } from '@ventus/orchestration';
+import { createRequest } from '@ventus/request';
+import { homeConfig } from './orchestration';
+import { Logo, Nav, PostList, Footer } from './modules';
 
-function HomeEntry() {
-  // 首屏模块列表与产品文档保持一致
-  const { modules, isLoading, error } = usePageData('home', [
-    'header',     // 顶部导航
-    'hero',       // 首屏横幅
-    'postList',   // 文章列表（首屏核心）
-    'sidebar',    // 侧边栏
-    'footer'      // 页脚
-  ]);
+const request = createRequest({ baseURL: '/api' });
 
-  if (isLoading) return <HomeSkeleton />;
-  if (error) return <ErrorPage error={error} />;
+// 创建编排系统（自动请求 BFF 数据）
+const orchestration = createOrchestration({
+  config: homeConfig,
+  request,
+  modules: { Logo, Nav, PostList, Footer }
+});
 
-  return <HomePage modules={modules} />;
-}
+// 渲染（OrchestrationRenderer 根据配置渲染布局）
+createRoot(document.getElementById('root')!).render(
+  <orchestration.Renderer />
+);
 ```
 
 ### 共享包结构

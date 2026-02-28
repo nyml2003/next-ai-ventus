@@ -2,12 +2,24 @@
 
 ## 核心思想
 
-**Monorepo + MPA + 无数据库 + BFF**
+**Monorepo + MPA + 无数据库 + BFF + OpenAPI**
 
 - 各页面（URL）完全独立，有自己的 HTML 入口
 - 页面通过组装 npm 包构建，共享代码自动提取为独立 chunk
 - 数据以文件形式存储，Git 管理，启动时加载索引到内存
 - BFF 统一接口 `/api/page`，后端按需组装模块数据
+- **OpenAPI 契约优先**：前后端共享 API 契约，自动生成类型和 SDK
+
+## 架构文档索引
+
+| 文档 | 内容 |
+|------|------|
+| [api-design.md](./api-design.md) | OpenAPI 契约设计、SDK 生成、错误码定义 |
+| [api-approaches.md](./api-approaches.md) | API 方案对比（gRPC/OpenAPI/tRPC/GraphQL） |
+| [orchestration.md](./orchestration.md) | 前端编排系统 |
+| [principles.md](./principles.md) | 设计原则 |
+| [frontend/README.md](./frontend/README.md) | 前端详细设计 |
+| [server/README.md](./server/README.md) | 后端详细设计 |
 
 ---
 
@@ -221,6 +233,35 @@ var ModuleRegistry = map[string]ModuleHandler{
 | **登录页** `/login` | - | - | 纯前端表单，无 BFF |
 
 > **原则**：首屏可见的信息展示模块必须通过 BFF 获取数据，确保首屏渲染性能。
+
+### 编排系统集成
+
+页面通过 [编排系统](./orchestration.md) 声明式配置：
+
+```typescript
+// pages/home/orchestration.ts
+export const homeConfig: PageOrchestrationConfig = {
+  id: 'home',
+  modules: ['header', 'postList', 'footer'],  // 声明所需 BFF 模块
+  regions: [
+    {
+      id: 'header',
+      type: 'header',
+      block: {
+        type: 'block',
+        flexDirection: 'row',
+        children: [
+          { type: 'module', name: 'Logo' },
+          { type: 'module', name: 'Nav' }
+        ]
+      }
+    },
+    // ...
+  ]
+};
+```
+
+编排系统自动请求 BFF 数据，模块通过 `useModuleData` 从 Store 读取。
 
 ## 详细设计文档
 

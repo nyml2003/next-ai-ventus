@@ -1,4 +1,4 @@
-import { useRequest } from '@ventus/store';
+import { useRequest, useModuleData } from '@ventus/store';
 import type { PageProps, PostListItem } from '@ventus/types';
 
 interface PostListData {
@@ -17,10 +17,16 @@ export const PostList: React.FC<PostListProps> = ({ pageProps }) => {
   const page = parseInt(pageProps.getQuery('page') || '1');
   const tag = pageProps.getQuery('tag');
   
-  const { data, loading } = useRequest<PostListData>({
-    scene: 'post.list',
+  // 方式1: 使用聚合请求（推荐）
+  const { data: allModules, loading } = useRequest<PostListData>({
+    page: 'home',
     params: { page, pageSize: 10, tag }
   });
+  
+  // 方式2: 直接获取本模块数据
+  // const { data, loading: moduleLoading } = useModuleData<PostListData>('postList');
+  
+  const data = allModules?.postList?.data;
   
   if (loading) {
     return <div style={{ padding: '24px' }}>加载中...</div>;

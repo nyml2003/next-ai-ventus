@@ -4,10 +4,89 @@
 
 **测试驱动开发（TDD）**：每一阶段都先写测试，后写实现，确保核心代码测试覆盖率 >= 90%。
 
+**契约优先**：先定义 OpenAPI 契约，再生成前后端代码。
+
 **分层推进**：
+0. **第零阶段**：API 契约设计（OpenAPI + 代码生成）
 1. **第一阶段**：Go 核心领域层（纯业务逻辑，可独立测试）
 2. **第二阶段**：基础设施层（HTTP API、文件存储、BFF模块）
 3. **第三阶段**：MVP 前端（React + TypeScript）
+
+---
+
+## 第零阶段：API 契约设计（API Contract）
+
+**目标**：建立前后端共享的 OpenAPI 契约，生成类型安全的 SDK
+
+**交付物**：
+- OpenAPI 3.0 契约文件（api/openapi.yml）
+- 前端 TS SDK：@ventus/api-client
+- 后端 Go 类型：internal/api/types.go
+- API 文档（自动生成）
+
+### Task 0.1: 定义 OpenAPI 契约（1天）
+
+**文件**: `api/openapi.yml`
+
+定义核心模型和接口：
+- Schemas: Post, Author, Error, PageRequest, PageResponse
+- Paths: 
+  - `POST /api/page` - BFF 接口
+  - `GET /api/posts/{id}` - 文章详情
+  - `POST /api/admin/posts` - 创建文章
+  - `PUT /api/admin/posts/{id}` - 更新文章
+  - `POST /api/login` - 登录
+
+### Task 0.2: API 契约文档（0.5天）
+
+**文件**: `docs/api-endpoints.md`
+
+手动维护 API 文档（MVP 阶段不生成代码）：
+
+```markdown
+## BFF 接口
+
+### POST /api/public
+SceneCode: page.get
+
+Request:
+{
+  "page": "home",
+  "modules": ["header", "postList"],
+  "params": { "page": 1 }
+}
+
+Response:
+{
+  "code": 0,
+  "data": {
+    "page": "home",
+    "modules": { ... }
+  }
+}
+```
+
+**说明**：
+- MVP 阶段 API 数量少（< 20 个），手写文档即可
+- 类型定义分散在前后端代码中
+- 通过 Code Review 保证一致
+
+**输出**:
+- `server/internal/api/types.go` - Go struct 和 ServerInterface
+
+### Task 0.4: 集成 CI 自动化（可选）
+
+```yaml
+# .github/workflows/api.yml
+# API 变更时自动生成 SDK
+```
+
+### 阶段交付检查清单
+
+- [ ] OpenAPI 契约覆盖所有 MVP 接口
+- [ ] 前端 SDK 可正常生成并使用
+- [ ] 后端类型可正常生成并使用
+- [ ] 前后端类型一致（通过契约保证）
 
 ---
 
@@ -547,7 +626,7 @@ func (h *UploadHandler) Upload(c *gin.Context) {
 ```
 frontend/
 ├── packages/                    # 共享 npm 包
-│   ├── ui/                     # @next-ai-ventus/ui
+│   ├── ui/                     # @ventus/ui
 │   │   ├── components/
 │   │   │   ├── Button/
 │   │   │   ├── Layout/
@@ -557,37 +636,53 @@ frontend/
 │   │   │   └── Toast/
 │   │   └── theme/              # 主题系统
 │   │
-│   ├── utils/                  # @next-ai-ventus/utils
-│   │   ├── bff.ts             # BFF 请求封装
-│   │   ├── auth.ts            # 认证工具
-│   │   └── storage.ts         # Cookie/localStorage
+│   ├── request/                # @ventus/request
+│   │   └── index.ts           # HTTP 请求封装
 │   │
-│   ├── types/                  # @next-ai-ventus/types
+│   ├── store/                  # @ventus/store
+│   │   ├── index.ts           # Zustand Store
+│   │   └── hooks.ts           # useModuleData, usePageProps
+│   │
+│   ├── orchestration/          # @ventus/orchestration
+│   │   ├── index.ts           # createOrchestration
+│   │   ├── renderer.tsx       # OrchestrationRenderer
+│   │   └── types.ts           # 编排类型定义
+│   │
+│   ├── types/                  # @ventus/types
 │   │   └── api.ts             # API 类型定义
 │   │
-│   └── markdown/               # @next-ai-ventus/markdown
+│   └── markdown/               # @ventus/markdown
 │       ├── renderer.tsx
 │       └── highlight.ts
 │
 ├── pages/                      # 页面入口（MPA）
 │   ├── home/
 │   │   ├── index.html
-│   │   └── main.tsx
+│   │   ├── main.tsx           # 入口：创建编排
+│   │   ├── orchestration.ts   # 布局配置
+│   │   └── modules/           # 页面专用模块
+│   │       ├── Logo.tsx
+│   │       ├── Nav.tsx
+│   │       └── PostList.tsx
 │   │
 │   ├── post/                   # 文章详情
-│   │   └── main.tsx            # 路由 /post/:slug
+│   │   ├── main.tsx
+│   │   ├── orchestration.ts
+│   │   └── modules/
 │   │
 │   ├── login/
 │   │   ├── index.html
 │   │   └── main.tsx
 │   │
 │   ├── admin-posts/            # 文章管理（MVP 入口）
-│   │   ├── index.html
-│   │   └── main.tsx
+│   │   ├── main.tsx
+│   │   ├── orchestration.ts
+│   │   └── modules/
 │   │
 │   └── admin-editor/           # 文章编辑器
-│       ├── index.html
-│       └── main.tsx
+│       ├── main.tsx
+│       ├── orchestration.ts
+│       └── modules/
 │
 └── shell/                      # 统一构建配置
     └── vite.config.ts
@@ -616,30 +711,37 @@ frontend/
 }
 ```
 
-#### Task 3.2: BFF 客户端封装 (1天)
+#### Task 3.2: 状态管理与编排系统 (1天)
 
-**@next-ai-ventus/utils/bff.ts**：
+**@ventus/request**：
 ```typescript
-interface PageRequest {
-  page: string;
-  modules: string[];
-  params?: Record<string, any>;
-}
+// 基础 HTTP 请求封装
+const request = createRequest({ baseURL: '/api' });
+const data = await request.call({ scene: 'post.list', params: {} });
+```
 
-interface PageResponse {
-  page: string;
-  meta: { title: string; description?: string };
-  modules: Record<string, ModuleResult>;
-}
+**@ventus/store**：
+```typescript
+// 模块从 Store 读取 BFF 数据
+const { data, loading, error } = useModuleData('postList');
 
-async function fetchPageData(req: PageRequest): Promise<PageResponse>;
+// 获取 URL 参数
+const pageProps = usePageProps();
+const tag = pageProps.getQuery('tag');
+```
 
-// React Hook (使用 SWR)
-function usePageData(
-  page: string, 
-  modules: string[], 
-  params?: object
-): { data; error; isLoading };
+**@ventus/orchestration**：
+```typescript
+// 页面入口创建编排
+const orchestration = createOrchestration({
+  config,      // 布局配置
+  request,     // 请求实例
+  modules      // 模块组件映射
+});
+
+// 渲染
+<orchestration.Renderer />
+```
 ```
 
 #### Task 3.3: 页面实现 (4天)

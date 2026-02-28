@@ -25,11 +25,36 @@ export interface APIRequest<T = unknown> {
   data?: T;
 }
 
+/** BFF 聚合请求 */
+export interface BFFRequest {
+  /** 页面标识 */
+  page: string;
+  /** 模块列表 */
+  modules: string[];
+  /** 请求参数 */
+  params?: Record<string, unknown>;
+}
+
+/** BFF 模块结果 */
+export interface BFFModuleResult<T = unknown> {
+  code: number;
+  data?: T;
+  error?: string;
+}
+
+/** BFF 聚合响应 */
+export interface BFFResponse {
+  page: string;
+  modules: Record<string, BFFModuleResult>;
+}
+
 export interface RequestInstance {
-  call<T = unknown, D = unknown>(config: {
-    scene: string;
-    params?: D;
-  }): Promise<T>;
+  /** 发起 BFF 聚合请求 */
+  call<T = unknown>(config: {
+    page: string;
+    modules: string[];
+    params?: Record<string, unknown>;
+  }): Promise<Record<string, BFFModuleResult<T>>>;
   get<T = unknown>(url: string): Promise<T>;
   post<T = unknown>(url: string, data?: unknown): Promise<T>;
 }
@@ -72,20 +97,26 @@ class Request implements RequestInstance {
     return result.data as T;
   }
 
-  async call<T = unknown, D = unknown>({
-    scene,
+  async call<T = unknown>({
+    page,
+    modules,
     params
   }: {
-    scene: string;
-    params?: D;
-  }): Promise<T> {
-    return this.fetch<T>('/public', {
+    page: string;
+    modules: string[];
+    params?: Record<string, unknown>;
+  }): Promise<Record<string, BFFModuleResult<T>>> {
+    return this.fetch<BFFResponse>('/public', {
       method: 'POST',
       body: {
-        sceneCode: scene,
-        data: params
-      } as APIRequest<D>
-    });
+        sceneCode: 'page.get',
+        data: {
+          page,
+          modules,
+          params
+        }
+      }
+    }).then(res => res.modules as Record<string, BFFModuleResult<T>>);
   }
 
   async get<T = unknown>(url: string): Promise<T> {

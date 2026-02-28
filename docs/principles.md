@@ -126,15 +126,20 @@ BFF 返回数据 → PageStore（只读）→ 组件渲染
 
 ### 3.3 数据获取封装
 
-**原则**：每个页面统一使用 `usePageData` Hook 获取 BFF 数据。
+**原则**：页面通过编排系统声明所需 BFF 模块，模块从 Store 读取数据。
 
 ```typescript
-// 标准用法
-const { modules, isLoading, error } = usePageData(
-  'home',                                          // page
-  ['header', 'hero', 'postList', 'sidebar'],      // modules
-  { page: 1, tag: 'go' }                          // params
-);
+// 编排配置声明所需 BFF 模块
+// pages/home/orchestration.ts
+export const homeConfig: PageOrchestrationConfig = {
+  id: 'home',
+  modules: ['header', 'postList', 'footer'],  // 声明所需 BFF 模块
+  regions: [/* ... */]
+};
+
+// 模块内读取数据
+// modules/PostList.tsx
+const { data, loading, error } = useModuleData('postList');
 ```
 
 **禁止**：
@@ -144,9 +149,14 @@ useEffect(() => {
   fetch('/api/page').then(...)  // 错误！
 }, []);
 
-// ✅ 统一使用封装好的 Hook
-const { modules } = usePageData('home', [...]);
+// ❌ 不要手动调用 BFF 获取首屏数据
+const { data } = usePageData('home', [...]);  // 首屏数据由编排系统获取
+
+// ✅ 模块从 Store 读取数据
+const { data } = useModuleData('postList');
 ```
+
+更多详情参见 [编排系统文档](./orchestration.md)。
 
 ---
 
@@ -371,6 +381,7 @@ allowedTypes := []string{"jpg", "jpeg", "png", "webp", "gif"}
 ### 新增页面时检查
 
 - [ ] 产品文档（pages/*.md）已更新
+- [ ] 编排配置（orchestration.ts）已创建
 - [ ] 各模块已标注 BFF 模块名
 - [ ] architecture.md 映射表已更新
 - [ ] server/README.md 模块注册表已更新
@@ -385,8 +396,22 @@ allowedTypes := []string{"jpg", "jpeg", "png", "webp", "gif"}
 - [ ] 错误处理已定义
 - [ ] 已更新模块注册表
 
+### 新增编排模块（Module）时检查
+
+- [ ] 模块已在 `orchestration.ts` 的 `modules` 中注册
+- [ ] 模块组件已创建并正确导出
+- [ ] 模块使用 `useModuleData` 读取数据
+- [ ] 模块处理了 loading 和 error 状态
+
 ### 接口变更时检查
 
 - [ ] 是否向后兼容
 - [ ] 产品文档是否同步更新
 - [ ] 前端调用方是否同步更新
+
+### 错误码变更时
+
+- [ ] 前后端同时修改（同一 PR）
+- [ ] 命名语义保持一致（仅风格差异）
+- [ ] Code Review 确认两端一致
+- [ ] 检查业务代码是否依赖该错误码

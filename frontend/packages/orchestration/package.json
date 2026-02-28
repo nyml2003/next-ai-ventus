@@ -4,11 +4,23 @@
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
-  "dependencies": {},
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
   "peerDependencies": {
-    "react": "^18.2.0",
-    "@ventus/types": "workspace:*",
     "@ventus/request": "workspace:*",
-    "@ventus/store": "workspace:*"
+    "@ventus/store": "workspace:*",
+    "@ventus/types": "workspace:*",
+    "react": "^18.2.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^14.3.1",
+    "@types/jest": "^30.0.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "ts-jest": "^29.4.6"
   }
 }
