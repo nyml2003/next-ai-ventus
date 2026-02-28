@@ -26,21 +26,28 @@ func NewHandler(postService *service.PostService, indexService *service.IndexSer
 	return &Handler{
 		services: services,
 		registry: map[string]modules.ModuleHandler{
-			// MVP BFF 模块
-			"header":         modules.HandleHeader,
-			"footer":         modules.HandleFooter,
-			"postList":       modules.HandlePostList,
-			"article":        modules.HandleArticle,
+			// ===== C 端 Home 页面模块（按前端组件粒度）=====
+			"Logo":       modules.HandleLogo,
+			"Nav":        modules.HandleNav,
+			"UserAction": modules.HandleUserAction,
+			"PostList":   modules.HandlePostList,
+			"TagCloud":   modules.HandleTagCloud,
+			"Footer":     modules.HandleFooter,
+
+			// ===== C 端 Post 页面模块 =====
+			"Article": modules.HandleArticle,
+
+			// ===== B 端 Admin 页面模块 =====
 			"adminSidebar":   modules.HandleAdminSidebar,
 			"adminFilter":    modules.HandleAdminFilter,
 			"adminPostList":  modules.HandleAdminPostList,
 			"editor":         modules.HandleEditor,
 			"editorSettings": modules.HandleEditorSettings,
-			// P1 扩展模块（预留）
-			// "hero":          modules.HandleHero,
-			// "sidebar":       modules.HandleSidebar,
-			// "toc":           modules.HandleTOC,
-			// "related":       modules.HandleRelated,
+
+			// ===== 兼容旧模块名（保留到前端迁移完成）=====
+			"header":   modules.HandleHeader,
+			"footer":   modules.HandleFooter,
+			"postList": modules.HandlePostList,
 		},
 	}
 }

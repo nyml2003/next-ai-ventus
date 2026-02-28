@@ -1,4 +1,4 @@
-import { useRequest, useModuleData } from '@ventus/store';
+import { useModuleData } from '@ventus/store';
 import type { PageProps, PostListItem } from '@ventus/types';
 
 interface PostListData {
@@ -17,19 +17,14 @@ export const PostList: React.FC<PostListProps> = ({ pageProps }) => {
   const page = parseInt(pageProps.getQuery('page') || '1');
   const tag = pageProps.getQuery('tag');
   
-  // 方式1: 使用聚合请求（推荐）
-  const { data: allModules, loading } = useRequest<PostListData>({
-    page: 'home',
-    params: { page, pageSize: 10, tag }
-  });
-  
-  // 方式2: 直接获取本模块数据
-  // const { data, loading: moduleLoading } = useModuleData<PostListData>('postList');
-  
-  const data = allModules?.postList?.data;
+  const { data, loading, error } = useModuleData<PostListData>();
   
   if (loading) {
     return <div style={{ padding: '24px' }}>加载中...</div>;
+  }
+  
+  if (error) {
+    return <div style={{ padding: '24px', color: 'red' }}>加载失败: {error.message}</div>;
   }
   
   if (!data || data.items.length === 0) {
@@ -43,6 +38,13 @@ export const PostList: React.FC<PostListProps> = ({ pageProps }) => {
   
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      {tag && (
+        <div style={{ padding: '12px', background: '#f5f5f5', borderRadius: '4px' }}>
+          标签: <strong>{tag}</strong>
+          <a href="/" style={{ marginLeft: '12px', fontSize: '14px' }}>清除筛选</a>
+        </div>
+      )}
+      
       {data.items.map((post) => (
         <article 
           key={post.id} 
@@ -58,14 +60,16 @@ export const PostList: React.FC<PostListProps> = ({ pageProps }) => {
           <p style={{ margin: '0 0 8px 0', color: '#666' }}>{post.excerpt}</p>
           <div style={{ display: 'flex', gap: '8px', fontSize: '14px', color: '#999' }}>
             <span>{post.date}</span>
-            {post.tags.map(tag => (
-              <span key={tag} style={{ 
+            {post.tags.map(t => (
+              <a key={t} href={`/?tag=${t}`} style={{ 
                 padding: '2px 8px', 
                 background: '#f0f0f0', 
-                borderRadius: '4px' 
+                borderRadius: '4px',
+                textDecoration: 'none',
+                color: '#666'
               }}>
-                {tag}
-              </span>
+                {t}
+              </a>
             ))}
           </div>
         </article>

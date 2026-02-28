@@ -10,6 +10,8 @@ export const homeConfig: PageOrchestrationConfig = {
     title: '首页 - Ventus Blog',
     description: 'Ventus 博客首页'
   },
+  // BFF 模块列表 - 编排系统会统一请求这些数据
+  modules: ['Logo', 'Nav', 'UserAction', 'PostList', 'TagCloud', 'Footer'],
   regions: [
     {
       id: 'header',

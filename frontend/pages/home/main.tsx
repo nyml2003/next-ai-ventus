@@ -21,35 +21,25 @@ const orchestration = createOrchestration({
     Footer,
   },
   resolver: (token) => {
-    // 首页业务语义化 spacing
     const isMobile = window.innerWidth < 768;
 
     const map: Record<string, string> = {
-      // 导航
       navPadding: isMobile ? "12px 16px" : "0 24px",
       navGap: isMobile ? "8px" : "16px",
-
-      // 内容区
       pagePadding: isMobile ? "16px" : "24px",
       sectionGap: isMobile ? "16px" : "32px",
       contentGap: isMobile ? "12px" : "16px",
       contentPadding: isMobile ? "0" : "0",
-
-      // 侧边栏
       sidebarGap: isMobile ? "12px" : "16px",
       sidebarPadding: isMobile ? "0" : "16px",
-
-      // 页脚
       footerPadding: isMobile ? "24px 16px" : "32px 24px",
     };
 
-    return () => map[token] || "0px";
+    return map[token] || "0px";
   },
 });
 
 // 渲染
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <orchestration.Renderer />
-  </React.StrictMode>,
+  <orchestration.Renderer />
 );

@@ -24,7 +24,7 @@ const (
 	CodeUnauthorized    = 3
 	CodeForbidden       = 4
 	CodeNotFound        = 5
-	CodeMethodNotAllow  = 6
+	CodeMethodNotAllowed  = 6
 	CodeTimeout         = 7
 
 	// 认证错误 (100-199)
@@ -64,7 +64,7 @@ var CodeMessageMap = map[int]string{
 	CodeUnauthorized:       "unauthorized",
 	CodeForbidden:          "forbidden",
 	CodeNotFound:           "resource not found",
-	CodeMethodNotAllow:     "method not allowed",
+	CodeMethodNotAllowed:   "method not allowed",
 	CodeTimeout:            "request timeout",
 
 	CodeAuthFailed:         "authentication failed",

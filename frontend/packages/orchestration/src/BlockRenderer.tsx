@@ -5,6 +5,7 @@
 import * as React from 'react';
 import type { BlockConfig, ModuleConfig, PageProps } from '@ventus/types';
 import { useOrchestrationContext } from './index';
+import { ModuleContext } from '@ventus/store';
 import { usePageProps, useResolver } from '@ventus/store';
 
 interface BlockRendererProps {
@@ -32,23 +33,40 @@ const ModuleRenderer: React.FC<ModuleRendererProps> = ({ module, pageProps }) =>
     );
   }
   
+  // 提供 ModuleContext，让子组件知道自己在哪个模块中
+  const ModuleWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =>
+    React.createElement(
+      ModuleContext.Provider,
+      { value: { moduleName: module.name } },
+      children
+    );
+  
   // 判断是组件还是懒加载函数
   const isLazyLoader = typeof moduleLoader === 'function' && 
     moduleLoader.prototype === undefined &&
     !('displayName' in moduleLoader || 'name' in moduleLoader);
   
+  // 统一的 props，包含 pageProps 和 moduleName
+  const componentProps = { 
+    pageProps: pageProps,
+    __moduleName: module.name  // 注入模块名，供 useModuleData 使用
+  };
+  
   if (isLazyLoader) {
     const LazyModule = React.lazy(moduleLoader as () => Promise<{ default: React.ComponentType<any> }>);
     
-    // 使用 React.createElement 替代 JSX
     const WrappedModule: React.FC = () =>
       React.createElement(
-        React.Suspense,
-        { fallback: React.createElement('div', { style: { padding: '16px' } }, `Loading ${module.name}...`) },
+        ModuleWrapper,
+        {},
         React.createElement(
-          'div',
-          { className: `module module-${module.name}` },
-          React.createElement(LazyModule, { pageProps: pageProps })
+          React.Suspense,
+          { fallback: React.createElement('div', { style: { padding: '16px' } }, `Loading ${module.name}...`) },
+          React.createElement(
+            'div',
+            { className: `module module-${module.name}` },
+            React.createElement(LazyModule, componentProps)
+          )
         )
       );
     
@@ -59,9 +77,13 @@ const ModuleRenderer: React.FC<ModuleRendererProps> = ({ module, pageProps }) =>
   const Component = moduleLoader as React.ComponentType<{ pageProps: PageProps }>;
   
   return React.createElement(
-    'div',
-    { className: `module module-${module.name}` },
-    React.createElement(Component, { pageProps: pageProps })
+    ModuleWrapper,
+    {},
+    React.createElement(
+      'div',
+      { className: `module module-${module.name}` },
+      React.createElement(Component, componentProps)
+    )
   );
 };
 

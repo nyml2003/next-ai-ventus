@@ -309,37 +309,79 @@ export function useModuleKeys(): string[] {
   return keys;
 }
 
-/** 获取指定模块的数据（从聚合请求结果中） */
+/**
+ * Module Context - 用于模块组件获取当前模块名
+ * 由 @ventus/orchestration 提供值，@ventus/store 消费
+ */
+export interface ModuleContextValue {
+  moduleName: string;
+}
+
+export const ModuleContext = React.createContext<ModuleContextValue | null>(null);
+
+/** 
+ * 获取指定模块的数据（从聚合请求结果中）
+ * 返回 { data, loading, error } 对象，与 useRequest 保持一致
+ * 
+ * 用法：
+ * 1. 在模块组件内使用（自动获取当前模块名）：useModuleData<DataType>()
+ * 2. 在其他地方使用（需指定模块名）：useModuleData<DataType>('moduleName')
+ */
 export function useModuleData<T = unknown>(
-  moduleName: string,
-): import("@ventus/request").BFFModuleResult<T> | undefined {
+  moduleName?: string,
+): RequestState<T> {
   const store = useStore();
-  const [data, setData] = React.useState<
-    import("@ventus/request").BFFModuleResult<T> | undefined
-  >(() => {
-    const state = store.getState();
-    // 获取最近一次的聚合请求结果
-    for (const [, requestState] of state.requestCache) {
-      if (requestState.data && requestState.data[moduleName]) {
-        return requestState.data[moduleName];
+  
+  // 尝试从 ModuleContext 获取模块名（如果在模块组件内）
+  let targetModuleName = moduleName;
+  
+  if (!targetModuleName) {
+    const moduleContext = React.useContext(ModuleContext);
+    if (moduleContext) {
+      targetModuleName = moduleContext.moduleName;
+    } else {
+      throw new Error(
+        'useModuleData must be used within a Module component or with an explicit moduleName. ' +
+        'If calling outside a module, use useModuleData("moduleName")'
+      );
+    }
+  }
+  
+  const [state, setState] = React.useState<RequestState<T>>(() => {
+    // 查找聚合请求结果
+    const storeState = store.getState();
+    for (const [, requestState] of storeState.requestCache) {
+      if (requestState.data && requestState.data[targetModuleName]) {
+        const moduleResult = requestState.data[targetModuleName] as import("@ventus/request").BFFModuleResult<T>;
+        return {
+          data: moduleResult.data ?? null,
+          loading: requestState.loading,
+          error: moduleResult.error ? new Error(moduleResult.error) : null,
+        };
       }
     }
-    return undefined;
+    // 默认返回 loading 状态
+    return { data: null, loading: true, error: null };
   });
 
   React.useEffect(() => {
-    const unsubscribe = store.subscribe((state) => {
-      for (const [, requestState] of (state as OrchestrationState).requestCache) {
-        if (requestState.data && requestState.data[moduleName]) {
-          setData(requestState.data[moduleName]);
+    const unsubscribe = store.subscribe((newState) => {
+      for (const [, requestState] of (newState as OrchestrationState).requestCache) {
+        if (requestState.data && requestState.data[targetModuleName]) {
+          const moduleResult = requestState.data[targetModuleName] as import("@ventus/request").BFFModuleResult<T>;
+          setState({
+            data: moduleResult.data ?? null,
+            loading: requestState.loading,
+            error: moduleResult.error ? new Error(moduleResult.error) : null,
+          });
           return;
         }
       }
     });
     return unsubscribe;
-  }, [store, moduleName]);
+  }, [store, targetModuleName]);
 
-  return data;
+  return state;
 }
 
 // ==================== 辅助函数 ====================

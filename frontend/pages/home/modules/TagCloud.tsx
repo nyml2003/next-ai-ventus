@@ -1,9 +1,14 @@
-import { useRequest, useModuleData } from '@ventus/store';
+import { useModuleData } from '@ventus/store';
 import type { PageProps } from '@ventus/types';
 
 interface Tag {
   name: string;
   count: number;
+  href: string;
+}
+
+interface TagCloudData {
+  tags: Tag[];
 }
 
 interface TagCloudProps {
@@ -11,40 +16,38 @@ interface TagCloudProps {
 }
 
 export const TagCloud: React.FC<TagCloudProps> = () => {
-  // BFF 聚合请求 - 传入 page 标识
-  const { data: allModules, loading } = useRequest<Tag[]>({
-    page: 'home',
-    params: {}
-  });
-  
-  const data = allModules?.tagCloud?.data;
+  const { data, loading } = useModuleData<TagCloudData>();
   
   if (loading) {
     return <div style={{ padding: '16px' }}>加载中...</div>;
   }
   
-  if (!data || data.length === 0) {
+  const tags = data?.tags || [];
+  
+  if (tags.length === 0) {
     return null;
   }
   
   return (
-    <div style={{ padding: '16px', border: '1px solid #eee', borderRadius: '8px' }}>
-      <h3 style={{ margin: '0 0 16px 0' }}>热门标签</h3>
+    <div style={{ padding: '16px', background: '#f9f9f9', borderRadius: '8px' }}>
+      <h3 style={{ margin: '0 0 12px 0', fontSize: '16px' }}>标签</h3>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-        {data.map((tag) => (
+        {tags.map((tag) => (
           <a
             key={tag.name}
-            href={`/?tag=${tag.name}`}
+            href={tag.href}
             style={{
               padding: '4px 12px',
-              background: '#f0f0f0',
-              borderRadius: '4px',
+              background: '#fff',
+              border: '1px solid #eee',
+              borderRadius: '16px',
               textDecoration: 'none',
-              color: '#333',
-              fontSize: '14px'
+              color: '#666',
+              fontSize: '14px',
             }}
           >
-            {tag.name} ({tag.count})
+            {tag.name}
+            <span style={{ marginLeft: '4px', color: '#999' }}>({tag.count})</span>
           </a>
         ))}
       </div>
