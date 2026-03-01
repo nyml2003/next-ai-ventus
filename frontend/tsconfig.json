@@ -20,6 +20,6 @@
       "@ventus/*": ["packages/*/src"]
     }
   },
-  "include": ["packages/**/*", "pages/**/*", "shell/**/*"],
-  "references": [{ "path": "./shell" }]
+  "include": ["packages/**/*", "pages/**/*"],
+  "exclude": ["node_modules", "dist", "**/__tests__/**", "**/*.test.ts", "**/*.test.tsx", "**/test-utils.tsx"]
 }

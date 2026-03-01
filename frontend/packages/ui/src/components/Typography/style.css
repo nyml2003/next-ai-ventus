@@ -1,0 +1,258 @@
+/* ==================== Title / Heading ==================== */
+
+.vent-title {
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--color-text-primary);
+}
+
+.vent-title--level-1 {
+  font-size: var(--text-3xl);
+}
+
+.vent-title--level-2 {
+  font-size: var(--text-2xl);
+}
+
+.vent-title--level-3 {
+  font-size: var(--text-xl);
+}
+
+.vent-title--level-4 {
+  font-size: var(--text-lg);
+}
+
+.vent-title--level-5 {
+  font-size: var(--text-base);
+}
+
+.vent-title--level-6 {
+  font-size: var(--text-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ==================== Text / Paragraph ==================== */
+
+.vent-text {
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Variants */
+.vent-text--body {
+  color: var(--color-text-primary);
+}
+
+.vent-text--secondary {
+  color: var(--color-text-secondary);
+}
+
+.vent-text--tertiary {
+  color: var(--color-text-tertiary);
+}
+
+.vent-text--caption {
+  color: var(--color-text-tertiary);
+  font-size: var(--text-xs);
+}
+
+.vent-text--code {
+  font-family: var(--font-mono);
+  background-color: var(--color-bg-secondary);
+  padding: 0.125em 0.375em;
+  border-radius: var(--radius-sm);
+  font-size: 0.9em;
+}
+
+/* Sizes */
+.vent-text--xs {
+  font-size: var(--text-xs);
+}
+
+.vent-text--sm {
+  font-size: var(--text-sm);
+}
+
+.vent-text--base {
+  font-size: var(--text-base);
+}
+
+.vent-text--lg {
+  font-size: var(--text-lg);
+}
+
+.vent-text--xl {
+  font-size: var(--text-xl);
+}
+
+/* Modifiers */
+.vent-text--bold {
+  font-weight: 600;
+}
+
+.vent-text--ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ==================== Link ==================== */
+
+.vent-link {
+  color: var(--color-primary-600);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.vent-link:hover {
+  color: var(--color-primary-700);
+}
+
+.vent-link--underline:hover {
+  text-decoration: underline;
+}
+
+/* ==================== Box ==================== */
+
+.vent-box {
+  display: block;
+}
+
+/* Padding */
+.vent-box--padding-xs {
+  padding: var(--spacing-xs);
+}
+
+.vent-box--padding-sm {
+  padding: var(--spacing-sm);
+}
+
+.vent-box--padding-md {
+  padding: var(--spacing-md);
+}
+
+.vent-box--padding-lg {
+  padding: var(--spacing-lg);
+}
+
+.vent-box--padding-xl {
+  padding: var(--spacing-xl);
+}
+
+/* Margin */
+.vent-box--margin-xs {
+  margin: var(--spacing-xs);
+}
+
+.vent-box--margin-sm {
+  margin: var(--spacing-sm);
+}
+
+.vent-box--margin-md {
+  margin: var(--spacing-md);
+}
+
+.vent-box--margin-lg {
+  margin: var(--spacing-lg);
+}
+
+.vent-box--margin-xl {
+  margin: var(--spacing-xl);
+}
+
+/* ==================== Flex ==================== */
+
+.vent-flex {
+  display: flex;
+}
+
+/* Direction */
+.vent-flex--direction-row {
+  flex-direction: row;
+}
+
+.vent-flex--direction-column {
+  flex-direction: column;
+}
+
+.vent-flex--direction-row-reverse {
+  flex-direction: row-reverse;
+}
+
+.vent-flex--direction-column-reverse {
+  flex-direction: column-reverse;
+}
+
+/* Justify */
+.vent-flex--justify-start {
+  justify-content: flex-start;
+}
+
+.vent-flex--justify-center {
+  justify-content: center;
+}
+
+.vent-flex--justify-end {
+  justify-content: flex-end;
+}
+
+.vent-flex--justify-between {
+  justify-content: space-between;
+}
+
+.vent-flex--justify-around {
+  justify-content: space-around;
+}
+
+.vent-flex--justify-evenly {
+  justify-content: space-evenly;
+}
+
+/* Align */
+.vent-flex--align-start {
+  align-items: flex-start;
+}
+
+.vent-flex--align-center {
+  align-items: center;
+}
+
+.vent-flex--align-end {
+  align-items: flex-end;
+}
+
+.vent-flex--align-stretch {
+  align-items: stretch;
+}
+
+.vent-flex--align-baseline {
+  align-items: baseline;
+}
+
+/* Gap */
+.vent-flex--gap-xs {
+  gap: var(--spacing-xs);
+}
+
+.vent-flex--gap-sm {
+  gap: var(--spacing-sm);
+}
+
+.vent-flex--gap-md {
+  gap: var(--spacing-md);
+}
+
+.vent-flex--gap-lg {
+  gap: var(--spacing-lg);
+}
+
+.vent-flex--gap-xl {
+  gap: var(--spacing-xl);
+}
+
+/* Wrap */
+.vent-flex--wrap {
+  flex-wrap: wrap;
+}

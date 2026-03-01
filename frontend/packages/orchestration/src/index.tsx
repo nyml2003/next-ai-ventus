@@ -56,9 +56,10 @@ export function useOrchestrationContext(): OrchestrationContextValue {
 // ==================== Module Context ====================
 // 从 store 包重新导出，避免循环依赖
 export { ModuleContext, type ModuleContextValue } from '@ventus/store';
+import { ModuleContext as ModuleContextImpl, type ModuleContextValue } from '@ventus/store';
 
-export function useModuleContext(): import('@ventus/store').ModuleContextValue {
-  const context = React.useContext(ModuleContext);
+export function useModuleContext(): ModuleContextValue {
+  const context = React.useContext(ModuleContextImpl);
   if (!context) {
     throw new Error('useModuleContext must be used within a Module component');
   }
@@ -82,7 +83,7 @@ const PageRenderer: React.FC<PageRendererProps> = ({
   const pageProps = createPagePropsFromURL();
   
   // 获取 BFF 模块列表（如果配置中没有，则使用空数组）
-  const bffModules = config.modules || [];
+  const bffModules = (config as PageOrchestrationConfig & { modules?: string[] }).modules || [];
   
   // 使用 ref 确保依赖数组稳定，避免重复请求
   const requestConfig = React.useRef({

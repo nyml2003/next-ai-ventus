@@ -1,3 +1,5 @@
+@import './reset.css';
+
 :root {
   /* Colors */
   --color-bg-primary: #ffffff;
@@ -55,16 +57,9 @@
   --max-width-post: 800px;
 }
 
-/* Reset */
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
+/* Base styles */
 html {
   font-size: 16px;
-  line-height: 1.5;
 }
 
 body {
@@ -75,7 +70,6 @@ body {
 
 a {
   color: var(--color-primary-600);
-  text-decoration: none;
 }
 
 a:hover {

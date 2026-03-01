@@ -34,7 +34,7 @@ const ModuleRenderer: React.FC<ModuleRendererProps> = ({ module, pageProps }) =>
   }
   
   // 提供 ModuleContext，让子组件知道自己在哪个模块中
-  const ModuleWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =>
+  const ModuleWrapper: React.FC<{ children?: React.ReactNode }> = ({ children }) =>
     React.createElement(
       ModuleContext.Provider,
       { value: { moduleName: module.name } },

@@ -66,6 +66,8 @@ export interface PageOrchestrationConfig {
     title?: string;
     description?: string;
   };
+  /** BFF 模块列表 - 编排系统会统一请求这些数据 */
+  modules?: string[];
   /** 区域列表 */
   regions: RegionConfig[];
 }

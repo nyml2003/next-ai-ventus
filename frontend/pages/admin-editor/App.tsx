@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Button, Input, TextArea } from '@ventus/ui';
 import { fetchPageData, adminAPI, createPageProps } from '@ventus/utils';
 import { renderMarkdown } from '@ventus/markdown';
@@ -34,9 +34,11 @@ export const App: React.FC = () => {
           params: { id: postId },
         });
 
-        const editorData = response.modules.editor?.data;
-        setData(editorData);
-        setPreview(renderMarkdown(editorData.content || ''));
+        const editorData = response.modules.editor?.data as EditorData | undefined;
+        if (editorData) {
+          setData(editorData);
+          setPreview(renderMarkdown(editorData.content || ''));
+        }
       } catch (err) {
         if ((err as Error).message?.includes('unauthorized')) {
           window.location.href = '/pages/login/index.html';
@@ -68,7 +70,7 @@ export const App: React.FC = () => {
 
   const handleRemoveTag = (tag: string) => {
     if (!data) return;
-    setData({ ...data, tags: data.tags.filter((t) => t !== tag) });
+    setData({ ...data, tags: data.tags.filter((t: string) => t !== tag) });
   };
 
   const handleSave = async (publish: boolean = false) => {

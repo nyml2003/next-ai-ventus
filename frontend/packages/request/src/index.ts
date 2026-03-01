@@ -265,6 +265,6 @@ export {
   APIError 
 } from './errors';
 
-export type { BFFModuleResult, BFFResponse, APIResponse };
+// 类型已从上面导出，避免重复导出
 
 export default createRequest;

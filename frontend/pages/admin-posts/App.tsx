@@ -64,8 +64,8 @@ export const App: React.FC = () => {
       });
 
       setData({
-        adminSidebar: response.modules.adminSidebar?.data,
-        adminPostList: response.modules.adminPostList?.data,
+        adminSidebar: response.modules.adminSidebar?.data as AdminSidebarData,
+        adminPostList: response.modules.adminPostList?.data as AdminPostListData,
       });
     } catch (err) {
       if ((err as Error).message?.includes('unauthorized')) {

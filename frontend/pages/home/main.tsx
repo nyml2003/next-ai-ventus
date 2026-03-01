@@ -1,4 +1,3 @@
-import React from "react";
 import ReactDOM from "react-dom/client";
 import { createOrchestration } from "@ventus/orchestration";
 import { createRequest } from "@ventus/request";
@@ -41,5 +40,5 @@ const orchestration = createOrchestration({
 
 // 渲染
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  <orchestration.Renderer />
+  <orchestration.Renderer />,
 );

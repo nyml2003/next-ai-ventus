@@ -5,7 +5,7 @@ const TOKEN_KEY = 'ventus_token';
 
 // 登录
 export async function login(credentials: LoginRequest): Promise<void> {
-  const data = await publicAPI<LoginResponse>('auth.login', credentials);
+  const data = await publicAPI<LoginResponse>('auth.login', credentials as unknown as Record<string, unknown>);
   localStorage.setItem(TOKEN_KEY, data.token);
 }
 

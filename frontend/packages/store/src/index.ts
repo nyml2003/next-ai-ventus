@@ -108,7 +108,7 @@ export const useOrchestrationStore = createOrchestrationStore();
 const StoreContext = React.createContext<OrchestrationStoreApi | null>(null);
 
 export interface StoreProviderProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   config: PageOrchestrationConfig;
   request: RequestInstance;
   resolver: (token: string) => string;
@@ -155,7 +155,7 @@ function useStore(): OrchestrationStoreApi {
   return context;
 }
 
-export interface UseRequestOptions<T = unknown> {
+export interface UseRequestOptions {
   /** 页面标识 */
   page: string;
   /** 模块列表 - 如果不传则自动从 store 获取 */
@@ -166,12 +166,12 @@ export interface UseRequestOptions<T = unknown> {
   deps?: unknown[];
 }
 
-export function useRequest<T = unknown>({
+export function useRequest({
   page,
   modules: customModules,
   params,
   deps = [],
-}: UseRequestOptions<T>): RequestState<Record<string, import("@ventus/request").BFFModuleResult<T>>> & { refetch: () => void } {
+}: UseRequestOptions): RequestState<Record<string, import("@ventus/request").BFFModuleResult>> & { refetch: () => void } {
   const store = useStore();
   const request = store.getState().request;
   
@@ -186,16 +186,16 @@ export function useRequest<T = unknown>({
   }, [page, moduleKeys, params]);
 
   // 使用 subscribe 监听状态变化
-  const [state, setState] = React.useState<RequestState<Record<string, import("@ventus/request").BFFModuleResult<T>>>>(() =>
-    store.getState().getRequestState<Record<string, import("@ventus/request").BFFModuleResult<T>>>(cacheKey),
+  const [state, setState] = React.useState<RequestState<Record<string, import("@ventus/request").BFFModuleResult>>>(() =>
+    store.getState().getRequestState<Record<string, import("@ventus/request").BFFModuleResult>>(cacheKey),
   );
 
   React.useEffect(() => {
-    setState(store.getState().getRequestState<Record<string, import("@ventus/request").BFFModuleResult<T>>>(cacheKey));
+    setState(store.getState().getRequestState<Record<string, import("@ventus/request").BFFModuleResult>>(cacheKey));
     const unsubscribe = store.subscribe((newState) => {
       const newRequestState = (newState as OrchestrationState).requestCache.get(
         cacheKey,
-      ) as RequestState<Record<string, import("@ventus/request").BFFModuleResult<T>>> | undefined;
+      ) as RequestState<Record<string, import("@ventus/request").BFFModuleResult>> | undefined;
       if (newRequestState) {
         setState(newRequestState);
       }
@@ -209,7 +209,7 @@ export function useRequest<T = unknown>({
     store.getState().setRequestState(cacheKey, { loading: true, error: null });
 
     try {
-      const data = await request.call<T>({ page, modules: moduleKeys, params });
+      const data = await request.call({ page, modules: moduleKeys, params });
       store.getState().setRequestState(cacheKey, { data, loading: false });
     } catch (err) {
       store.getState().setRequestState(cacheKey, {
@@ -329,7 +329,7 @@ export const ModuleContext = React.createContext<ModuleContextValue | null>(null
  */
 export function useModuleData<T = unknown>(
   moduleName?: string,
-): RequestState<T> {
+): RequestState<T | null> {
   const store = useStore();
   
   // 尝试从 ModuleContext 获取模块名（如果在模块组件内）
@@ -347,14 +347,14 @@ export function useModuleData<T = unknown>(
     }
   }
   
-  const [state, setState] = React.useState<RequestState<T>>(() => {
+  const [state, setState] = React.useState<RequestState<T | null>>(() => {
     // 查找聚合请求结果
     const storeState = store.getState();
     for (const [, requestState] of storeState.requestCache) {
-      if (requestState.data && requestState.data[targetModuleName]) {
-        const moduleResult = requestState.data[targetModuleName] as import("@ventus/request").BFFModuleResult<T>;
+      if (requestState.data && (requestState.data as Record<string, unknown>)[targetModuleName!]) {
+        const moduleResult = (requestState.data as Record<string, import("@ventus/request").BFFModuleResult>)[targetModuleName!];
         return {
-          data: moduleResult.data ?? null,
+          data: (moduleResult.data as T) ?? null,
           loading: requestState.loading,
           error: moduleResult.error ? new Error(moduleResult.error) : null,
         };
@@ -367,10 +367,10 @@ export function useModuleData<T = unknown>(
   React.useEffect(() => {
     const unsubscribe = store.subscribe((newState) => {
       for (const [, requestState] of (newState as OrchestrationState).requestCache) {
-        if (requestState.data && requestState.data[targetModuleName]) {
-          const moduleResult = requestState.data[targetModuleName] as import("@ventus/request").BFFModuleResult<T>;
+        if (requestState.data && (requestState.data as Record<string, unknown>)[targetModuleName!]) {
+          const moduleResult = (requestState.data as Record<string, import("@ventus/request").BFFModuleResult>)[targetModuleName!];
           setState({
-            data: moduleResult.data ?? null,
+            data: (moduleResult.data as T) ?? null,
             loading: requestState.loading,
             error: moduleResult.error ? new Error(moduleResult.error) : null,
           });
@@ -389,8 +389,7 @@ export function useModuleData<T = unknown>(
 export function createPagePropsFromURL(): PageProps {
   const url = new URL(window.location.href);
 
-  // 解析路由参数（简单实现，实际可能需要路由配置）
-  const pathParts = url.pathname.split("/").filter(Boolean);
+  // 解析查询参数
   const params: Record<string, string> = {};
 
   // 解析查询参数

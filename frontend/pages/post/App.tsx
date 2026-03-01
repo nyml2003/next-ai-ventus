@@ -35,9 +35,9 @@ export const App: React.FC = () => {
         });
 
         const postData: PostData = {
-          header: response.modules.header?.data,
-          article: response.modules.article?.data,
-          footer: response.modules.footer?.data,
+          header: response.modules.header?.data as PostData['header'],
+          article: response.modules.article?.data as Post,
+          footer: response.modules.footer?.data as PostData['footer'],
         };
 
         setData(postData);

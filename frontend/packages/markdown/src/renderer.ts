@@ -1,32 +1,5 @@
-import { marked } from 'marked';
+import { marked, type Tokens } from 'marked';
 import hljs from 'highlight.js';
-
-// 配置 marked
-marked.setOptions({
-  breaks: true,
-  gfm: true,
-});
-
-// 渲染 Markdown 为 HTML
-export function renderMarkdown(content: string): string {
-  return marked.parse(content, {
-    async: false,
-    renderer: {
-      code(token) {
-        const { text, lang } = token;
-        if (lang && hljs.getLanguage(lang)) {
-          try {
-            const highlighted = hljs.highlight(text, { language: lang }).value;
-            return `<pre><code class="hljs language-${lang}">${highlighted}</code></pre>`;
-          } catch (e) {
-            // fallback to plain text
-          }
-        }
-        return `<pre><code class="hljs">${escapeHtml(text)}</code></pre>`;
-      },
-    },
-  }) as string;
-}
 
 // HTML 转义
 function escapeHtml(text: string): string {
@@ -38,6 +11,35 @@ function escapeHtml(text: string): string {
     "'": '&#039;',
   };
   return text.replace(/[&<>"']/g, (m) => map[m]);
+}
+
+// 自定义代码高亮 renderer
+const renderer = {
+  code(token: Tokens.Code): string {
+    const { text, lang } = token;
+    if (lang && hljs.getLanguage(lang)) {
+      try {
+        const highlighted = hljs.highlight(text, { language: lang }).value;
+        return `<pre><code class="hljs language-${lang}">${highlighted}</code></pre>`;
+      } catch (e) {
+        // fallback to plain text
+      }
+    }
+    return `<pre><code class="hljs">${escapeHtml(text)}</code></pre>`;
+  },
+};
+
+// 配置 marked
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+marked.use({
+  renderer: renderer as any,
+  gfm: true,
+  breaks: true,
+});
+
+// 渲染 Markdown 为 HTML
+export function renderMarkdown(content: string): string {
+  return marked.parse(content, { async: false }) as string;
 }
 
 // 提取目录
